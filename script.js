@@ -42,14 +42,58 @@ const CONFIG = {
     big: "2 ORE",
     bigSub: "tutte per te, nella SPA",
     details: [
-      "Quando: lunedì sera, appena arrivati in hotel.",
+      "Lunedì 28 dicembre, dalle 17:30 alle 19:30, in esclusiva all'Hotel Lessinia di Bosco Chiesanuova.",
+      "Sauna, bagno vapore, vasca idromassaggio, pediluvio, docce emozionali e zona tisane.",
       "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
     ],
     message:
-      "Il mio regalo di Natale per te è un po' di tempo solo per coccolarti: due ore di relax totale " +
-      "nella spa del posto in cui andremo in vacanza. Ti aspetta lunedì sera, dopo il nostro arrivo " +
-      "e dopo una piccola sorpresa che non ti svelo fino all'hotel. Tu pensa solo a portare il sorriso più bello.",
+      "Il mio regalo di Natale per te è un po' di tempo solo per coccolarti: due ore di relax totale, " +
+      "dopo il nostro arrivo sulla Lessinia e dopo una piccola sorpresa che non ti svelo fino all'hotel. " +
+      "Nelle pagine seguenti trovi tutto il programma di questi due giorni insieme. Tu pensa solo a portare il sorriso più bello.",
     signature: "Con tutto il cuore",
+
+    // Programma. hl = riga evidenziata, url/urlLabel = link toccabile nel PDF
+    itinerary: [
+      {
+        day: "Lunedì 28 dicembre",
+        subtitle: "Partenza per Bosco Chiesanuova (Lessinia)",
+        rows: [
+          { t: "12:59", d: "Partenza da Isola della Scala (Consorzio A) con il bus ATV 146." },
+          { t: "13:48 - 14:23", d: "Cambio a Verona (Via Pallone B2) con pausa caffè." },
+          { t: "14:23 - 15:33", d: "Bus ATV 110 fino a Bosco Chiesanuova Centro." },
+          { t: "15:35", d: "Check-in in pieno centro alla Casa Leon d'Oro (Piazza Guglielmo Marconi 44-45): camera matrimoniale Superior con balcone e vista sulle montagne." },
+          { t: "15:50 - 17:15", d: "Sorpresa 1: te la svelo solo all'arrivo in hotel!" },
+          { t: "17:30 - 19:30", d: "Sorpresa 2, il tuo regalo: SPA in esclusiva per 2 ore all'Hotel Lessinia (Piazza Alpini 3): sauna, bagno vapore, vasca idromassaggio, pediluvio, docce emozionali e zona tisane.", hl: true },
+          { t: "19:45 - 21:00", d: "Cena insieme in centro oppure nel ristorante dell'hotel (aperto il lunedì sera).",
+            url: "https://www.casaleondoro.com/wp-content/uploads/2026/05/menuSITO2026.pdf", urlLabel: "Guarda il menu (tocca qui)" },
+        ],
+      },
+      {
+        day: "Martedì 29 dicembre",
+        subtitle: "Visita al paese e rientro",
+        rows: [
+          { t: "08:15 - 09:30", d: "Colazione a buffet in hotel (già inclusa nella tariffa)." },
+          { t: "09:45", d: "Check-out (entro le 10:00) e deposito bagagli in reception." },
+          { t: "10:00 - 12:30", d: "Giro in paese e passeggiata tra le vie del centro e i dintorni." },
+          { t: "12:30 - 13:45", d: "Pranzo in paese (il ristorante dell'hotel il martedì è chiuso per turno)." },
+          { t: "14:20 - 15:23", d: "Bus ATV 110 da Bosco Chiesanuova Centro a Verona (Via Pallone A)." },
+          { t: "15:32 - 16:19", d: "Cambio rapido a Verona Via Pallone (9 minuti) e bus ATV 146 fino a Isola della Scala (Consorzio B)." },
+        ],
+      },
+    ],
+
+    costs: {
+      subtitle: "per 2 persone",
+      rows: [
+        ["Hotel + colazione (Casa Leon d'Oro)", "150,00 €", "https://www.casaleondoro.com/"],
+        ["Biglietti bus A/R (8,50 € a persona a tratta: 3,90 + 4,60)", "34,00 €"],
+        ["SPA privata, 2 ore all'Hotel Lessinia", "90,00 €"],
+        ["Cena + pranzo (stima)", "~100,00 €"],
+      ],
+      total: "374,00 €",
+      perPerson: "187,00 € a persona",
+      note: "Ci aspetta un weekend che sa di montagna, di caldo e di noi due. Non vedo l'ora!",
+    },
   },
 };
 
@@ -139,7 +183,9 @@ const CONFIG = {
 
   /* ---------- Generatore PDF (nessuna libreria, nessun file sul server) ---------- */
   function buildPdf(P) {
-    const W = 595, H = 842, c = [];
+    const W = 595, H = 842;
+    const pages = [];                     // { c: [operatori], annots: [{rect, url}] }
+    let pg = null, c = null;
     const f = (n) => +n.toFixed(2);
     const rgb = (h) => [1, 3, 5].map((i) => f(parseInt(h.substr(i, 2), 16) / 255)).join(" ");
     const fill = (h) => c.push(rgb(h) + " rg");
@@ -150,11 +196,12 @@ const CONFIG = {
       F3: ["Times-Italic", "italic", "'Times New Roman', Times, serif"],
       F4: ["Times-Bold", "bold", "'Times New Roman', Times, serif"],
     };
-    // Il PDF usa la codifica WinAnsi (accenti italiani ok): niente caratteri oltre Latin-1
+    // Codifica WinAnsi (accenti italiani ok): niente caratteri oltre Latin-1
     const latin1 = (t) => String(t)
       .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
       .replace(/[–—]/g, "-").replace(/…/g, "...")
-      .replace(/[^\x00-\xFF]/g, "?");
+      .replace(/[^\x00-\xFF\u20AC]/g, "?");
+    const esc = (t) => t.replace(/([\\()])/g, "\\$1");
     const mctx = document.createElement("canvas").getContext("2d");
     const measure = (t, font, size, tc) => {
       const [, style, fam] = FONTS[font];
@@ -164,8 +211,9 @@ const CONFIG = {
     const text = (t, x, y, font, size, color, align, tc) => {
       t = latin1(t);
       const w = measure(t, font, size, tc);
-      const x0 = align === "center" ? x - w / 2 : x;
-      c.push(`BT /${font} ${size} Tf ${rgb(color)} rg ${tc || 0} Tc ${f(x0)} ${f(y)} Td (${t.replace(/([\\()])/g, "\\$1")}) Tj ET`);
+      const x0 = align === "center" ? x - w / 2 : align === "right" ? x - w : x;
+      c.push(`BT /${font} ${size} Tf ${rgb(color)} rg ${tc || 0} Tc ${f(x0)} ${f(y)} Td (${esc(t.replace(/\u20AC/g, "\x80"))}) Tj ET`);
+      return w;
     };
     const wrap = (t, font, size, maxW) => {
       const out = []; let line = "";
@@ -188,27 +236,29 @@ const CONFIG = {
         `${x + r} ${y + h} l ${x + r - k} ${y + h} ${x} ${y + h - r + k} ${x} ${y + h - r} c ` +
         `${x} ${y + r} l ${x} ${y + r - k} ${x + r - k} ${y} ${x + r} ${y} c h`);
     };
+    const link = (x, y, w, h, url) => pg.annots.push({ rect: [x, y, x + w, y + h], url });
 
-    const GREEN = "#0d1a14", RED = "#c0283a", GOLD = "#f2c27b", GOLDS = "#ffe2a8", CREAM = "#fff6ec", DARK = "#1c3a2a";
+    const GREEN = "#0d1a14", RED = "#c0283a", GOLD = "#f2c27b", GOLDS = "#ffe2a8", CREAM = "#fff6ec", DARK = "#1c3a2a", WINE = "#3b0f16";
 
-    // Sfondo + fascia rossa in basso + cornice oro
-    fill(GREEN); c.push(`0 0 ${W} ${H} re f`);
-    fill("#3b0f16"); c.push(`0 0 ${W} 110 re f`);
-    stroke(GOLD, 1.6); c.push(`26 26 ${W - 52} ${H - 52} re S`);
-    stroke(GOLD, 0.5); c.push(`34 34 ${W - 68} ${H - 68} re S`);
+    function newPage(first) {
+      pg = { c: [], annots: [] }; c = pg.c; pages.push(pg);
+      fill(GREEN); c.push(`0 0 ${W} ${H} re f`);
+      if (first) { fill(WINE); c.push(`0 0 ${W} 110 re f`); }
+      stroke(GOLD, 1.6); c.push(`26 26 ${W - 52} ${H - 52} re S`);
+      stroke(GOLD, 0.5); c.push(`34 34 ${W - 68} ${H - 68} re S`);
+      fill(GOLD);
+      (first ? [[80, 790, 7], [515, 782, 5], [62, 600, 4], [535, 640, 6], [74, 190, 5], [525, 200, 7], [300, 62, 4]]
+             : [[80, 800, 5], [515, 800, 5]])
+        .forEach(([x, y, s]) => { star(x, y, s, s * 0.28, 4); c.push("f"); });
+    }
 
-    // Scintille decorative
-    fill(GOLD);
-    [[80, 790, 7], [515, 782, 5], [62, 600, 4], [535, 640, 6], [74, 190, 5], [525, 200, 7], [300, 40 + 22, 4]]
-      .forEach(([x, y, s]) => { star(x, y, s, s * 0.28, 4); c.push("f"); });
-
-    // Stella e titolo
+    /* ----- Pagina 1: il regalo ----- */
+    newPage(true);
     fill(GOLD); star(W / 2, 772, 17, 7, 5); c.push("f");
     text(P.title, W / 2, 692, "F4", 54, GOLDS, "center");
     text(P.subtitle, W / 2, 660, "F3", 19, CREAM, "center");
 
-    // Buono: carta crema con fascia rossa
-    const cx = 70, cw = W - 140, cy = 335, ch = 270;
+    const cx = 70, cw = W - 140, ch = 322, cy = 640 - 20 - ch;
     fill(CREAM); roundRect(cx, cy, cw, ch, 16); c.push("f");
     fill(RED); c.push("q"); roundRect(cx, cy, cw, ch, 16); c.push("W n");
     c.push(`${cx} ${cy + ch - 40} ${cw} 40 re f Q`);
@@ -216,32 +266,100 @@ const CONFIG = {
     text(P.voucherLabel, W / 2, cy + ch - 26, "F2", 13, CREAM, "center", 4);
     text(P.big, W / 2, cy + ch - 118, "F4", 76, RED, "center");
     text(P.bigSub, W / 2, cy + ch - 152, "F3", 24, DARK, "center");
-    // divisore con rombo
-    stroke(GOLD, 1); c.push(`${cx + 40} ${cy + ch - 172} m ${W / 2 - 12} ${cy + ch - 172} l S`);
+    stroke(GOLD, 1);
+    c.push(`${cx + 40} ${cy + ch - 172} m ${W / 2 - 12} ${cy + ch - 172} l S`);
     c.push(`${W / 2 + 12} ${cy + ch - 172} m ${cx + cw - 40} ${cy + ch - 172} l S`);
     fill(GOLD); star(W / 2, cy + ch - 172, 6, 6 * 0.3, 4); c.push("f");
-    let y = cy + ch - 198;
+    let y = cy + ch - 196;
     for (const para of P.details) {
-      for (const ln of wrap(para, "F1", 12.5, cw - 70)) { text(ln, W / 2, y, "F1", 12.5, DARK, "center"); y -= 17; }
+      for (const ln of wrap(para, "F1", 12, cw - 60)) { text(ln, W / 2, y, "F1", 12, DARK, "center"); y -= 16.5; }
       y -= 5;
     }
 
-    // Messaggio
-    y = 290;
-    for (const ln of wrap(P.message, "F3", 16, 400)) { text(ln, W / 2, y, "F3", 16, CREAM, "center"); y -= 23; }
-    y -= 14;
+    y = cy - 34;
+    for (const ln of wrap(P.message, "F3", 15.5, 410)) { text(ln, W / 2, y, "F3", 15.5, CREAM, "center"); y -= 22; }
+    y -= 12;
     text(P.signature, W / 2, y, "F3", 22, GOLD, "center");
-    fill(GOLD); star(W / 2, y - 28, 7, 3, 5); c.push("f");
+    fill(GOLD); star(W / 2, y - 26, 7, 3, 5); c.push("f");
+
+    /* ----- Pagine successive: programma e spese ----- */
+    newPage(false); y = 742;
+    const ensure = (h) => { if (y - h < 62) { newPage(false); y = 780; } };
+    const X_T = 60, X_L = 140, X_D = 156, MAXW = 372;
+
+    for (const day of P.itinerary) {
+      ensure(120);
+      text(day.day, W / 2, y, "F4", 26, GOLDS, "center");
+      text(day.subtitle, W / 2, y - 20, "F3", 15, CREAM, "center");
+      y -= 52;
+      for (const r of day.rows) {
+        const lines = wrap(r.d, "F1", 11, MAXW);
+        const h = lines.length * 15 + (r.url ? 15 : 0);
+        ensure(h + 19);
+        stroke("#6b5a3a", 1); c.push(`${X_L} ${f(y + 13)} m ${X_L} ${f(y - h - 1)} l S`);   // linea del tempo
+        if (r.hl) {
+          fill(WINE); stroke(GOLD, 1);
+          roundRect(46, f(y - h + 3), W - 92, h + 14, 8); c.push("B");
+        }
+        fill(r.hl ? GOLD : "#8fd4a8"); star(X_L, y + 3.5, 3.6, 1.6, 4); c.push("f");
+        text(r.t, X_T, y, "F2", 10.5, GOLD);
+        lines.forEach((ln, i) => text(ln, X_D, y - i * 15, r.hl ? "F2" : "F1", 11, CREAM));
+        if (r.url) {
+          const w = text(r.urlLabel, X_D, y - lines.length * 15, "F1", 10.5, GOLD);
+          stroke(GOLD, 0.6); c.push(`${X_D} ${f(y - lines.length * 15 - 2)} m ${f(X_D + w)} ${f(y - lines.length * 15 - 2)} l S`);
+          link(X_D, y - lines.length * 15 - 3, w, 13, r.url);
+        }
+        y -= h + 19;
+      }
+      y -= 16;
+    }
+
+    // Riepilogo spese (pagina dedicata)
+    const K = P.costs;
+    newPage(false); y = 690;
+    fill(GOLD); star(W / 2, 770, 15, 6, 5); c.push("f");
+    text("Riepilogo spese", W / 2, y, "F4", 34, GOLDS, "center");
+    text(K.subtitle, W / 2, y - 24, "F3", 17, CREAM, "center");
+    y -= 76;
+    for (const [label, amount, url] of K.rows) {
+      const lines = wrap(label, "F1", 13, 320);
+      lines.forEach((ln, i) => text(ln, 64, y - i * 17, "F1", 13, CREAM));
+      text(amount, W - 64, y, "F2", 14, GOLD, "right");
+      if (url) { link(64, y - 15, 300, 17, url); }
+      stroke("#6b5a3a", 0.6);
+      const by = y - (lines.length - 1) * 17 - 12;
+      c.push(`64 ${f(by)} m ${W - 64} ${f(by)} l S`);
+      y = by - 26;
+    }
+    y -= 6;
+    fill(CREAM); roundRect(64, y - 86, W - 128, 100, 16); c.push("f");
+    stroke(GOLD, 2); roundRect(64, y - 86, W - 128, 100, 16); c.push("S");
+    text("TOTALE", 88, y - 22, "F2", 12, RED, "left", 4);
+    text(K.total, W - 88, y - 40, "F4", 40, RED, "right");
+    text(K.perPerson, 88, y - 68, "F3", 18, DARK, "left");
+    y -= 130;
+    for (const ln of wrap(K.note, "F3", 16, 380)) { text(ln, W / 2, y, "F3", 16, CREAM, "center"); y -= 23; }
+    fill(GOLD); star(W / 2, y - 14, 9, 4, 5); c.push("f");
 
     // Assemblaggio PDF
-    const stream = c.join("\n");
-    const objs = [
-      "<< /Type /Catalog /Pages 2 0 R >>",
-      "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R /F4 8 0 R >> >> >>`,
-      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    ].concat(["F1", "F2", "F3", "F4"].map((k) =>
-      `<< /Type /Font /Subtype /Type1 /BaseFont /${FONTS[k][0]} /Encoding /WinAnsiEncoding >>`));
+    const objs = [];
+    const add = (s) => objs.push(s);
+    add("<< /Type /Catalog /Pages 2 0 R >>");
+    add(null);                                         // Pages: riempito dopo
+    ["F1", "F2", "F3", "F4"].forEach((k) =>
+      add(`<< /Type /Font /Subtype /Type1 /BaseFont /${FONTS[k][0]} /Encoding /WinAnsiEncoding >>`));
+    const kids = [];
+    for (const p of pages) {
+      const annotIds = p.annots.map((a) => add(
+        `<< /Type /Annot /Subtype /Link /Rect [${a.rect.map(f).join(" ")}] /Border [0 0 0] /A << /S /URI /URI (${esc(latin1(a.url))}) >> >>`));
+      const stream = p.c.join("\n");
+      const cid = add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+      const annots = annotIds.length ? ` /Annots [${annotIds.map((i) => i + " 0 R").join(" ")}]` : "";
+      kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents ${cid} 0 R` +
+        ` /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >>${annots} >>`));
+    }
+    objs[1] = `<< /Type /Pages /Kids [${kids.map((k) => k + " 0 R").join(" ")}] /Count ${kids.length} >>`;
+
     let out = "%PDF-1.4\n"; const offs = [];
     objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
     const xref = out.length;
