@@ -26,8 +26,30 @@ const CONFIG = {
     lockedTitle: "Manca poco a Natale…",
     lockedSubtitle: "Qualcosa di speciale ti aspetta.\nTorna a mezzanotte del 25 dicembre!",
     unlockPrefix: "Si sblocca il",          // + "25 dicembre alle 00:00"
-    unlockedTitle: "Buon Natale! 🎄",
-    unlockedMessage: "È arrivato il momento.\nTi auguro un Natale pieno di magia e di cose belle.",
+    unlockedTitle: "Buon Natale!",
+    unlockedMessage: "È arrivato il momento.\nIl tuo regalo ti aspetta: scaricalo qui sotto.",
+    buttonText: "Scarica il tuo regalo",
+    viewText: "Non parte il download? Aprilo nel browser",
+  },
+
+  // Il PDF viene CREATO dal telefono solo allo sblocco: sul server non esiste nessun file
+  // da scoprire in anticipo. Modifica qui sotto il contenuto.
+  pdf: {
+    fileName: "Il-Tuo-Regalo-di-Natale.pdf",
+    title: "Buon Natale",
+    subtitle: "un regalo pensato solo per te",
+    voucherLabel: "BUONO REGALO",
+    big: "2 ORE",
+    bigSub: "tutte per te, nella SPA",
+    details: [
+      "Quando: lunedì sera, appena arrivati in hotel.",
+      "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
+    ],
+    message:
+      "Il mio regalo di Natale per te è un po' di tempo solo per coccolarti: due ore di relax totale " +
+      "nella spa del posto in cui andremo in vacanza. Ti aspetta lunedì sera, dopo il nostro arrivo " +
+      "e dopo una piccola sorpresa che non ti svelo fino all'hotel. Tu pensa solo a portare il sorriso più bello.",
+    signature: "Con tutto il cuore",
   },
 };
 
@@ -70,6 +92,8 @@ const CONFIG = {
   $("lockedSubtitle").textContent = T.lockedSubtitle;
   $("unlockedTitle").textContent = T.unlockedTitle;
   $("unlockedMessage").textContent = T.unlockedMessage;
+  $("pdfDownload").textContent = T.buttonText;
+  $("pdfView").textContent = T.viewText;
 
   // "Si sblocca il 25 dicembre alle 00:00" (sempre in ora italiana)
   (function () {
@@ -112,6 +136,123 @@ const CONFIG = {
     el.bar.style.width = pct.toFixed(2) + "%";
   }
 
+
+  /* ---------- Generatore PDF (nessuna libreria, nessun file sul server) ---------- */
+  function buildPdf(P) {
+    const W = 595, H = 842, c = [];
+    const f = (n) => +n.toFixed(2);
+    const rgb = (h) => [1, 3, 5].map((i) => f(parseInt(h.substr(i, 2), 16) / 255)).join(" ");
+    const fill = (h) => c.push(rgb(h) + " rg");
+    const stroke = (h, w) => c.push(rgb(h) + " RG " + w + " w");
+    const FONTS = {
+      F1: ["Helvetica", "normal", "Helvetica, Arial, sans-serif"],
+      F2: ["Helvetica-Bold", "bold", "Helvetica, Arial, sans-serif"],
+      F3: ["Times-Italic", "italic", "'Times New Roman', Times, serif"],
+      F4: ["Times-Bold", "bold", "'Times New Roman', Times, serif"],
+    };
+    // Il PDF usa la codifica WinAnsi (accenti italiani ok): niente caratteri oltre Latin-1
+    const latin1 = (t) => String(t)
+      .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
+      .replace(/[–—]/g, "-").replace(/…/g, "...")
+      .replace(/[^\x00-\xFF]/g, "?");
+    const mctx = document.createElement("canvas").getContext("2d");
+    const measure = (t, font, size, tc) => {
+      const [, style, fam] = FONTS[font];
+      mctx.font = `${style} ${size}px ${fam}`;
+      return mctx.measureText(t).width + (tc || 0) * t.length;
+    };
+    const text = (t, x, y, font, size, color, align, tc) => {
+      t = latin1(t);
+      const w = measure(t, font, size, tc);
+      const x0 = align === "center" ? x - w / 2 : x;
+      c.push(`BT /${font} ${size} Tf ${rgb(color)} rg ${tc || 0} Tc ${f(x0)} ${f(y)} Td (${t.replace(/([\\()])/g, "\\$1")}) Tj ET`);
+    };
+    const wrap = (t, font, size, maxW) => {
+      const out = []; let line = "";
+      for (const w of latin1(t).split(/\s+/)) {
+        const test = line ? line + " " + w : w;
+        if (line && measure(test, font, size) > maxW) { out.push(line); line = w; } else line = test;
+      }
+      if (line) out.push(line);
+      return out;
+    };
+    const poly = (pts) => c.push(pts.map((p, i) => `${f(p[0])} ${f(p[1])} ${i ? "l" : "m"}`).join(" ") + " h");
+    const star = (cx, cy, R, r, n) => poly(Array.from({ length: n * 2 }, (_, i) => {
+      const a = Math.PI / 2 + (i * Math.PI) / n, rad = i % 2 ? r : R;
+      return [cx + Math.cos(a) * rad, cy + Math.sin(a) * rad];
+    }));
+    const roundRect = (x, y, w, h, r) => {
+      const k = r * 0.5523;
+      c.push(`${x + r} ${y} m ${x + w - r} ${y} l ${x + w - r + k} ${y} ${x + w} ${y + r - k} ${x + w} ${y + r} c ` +
+        `${x + w} ${y + h - r} l ${x + w} ${y + h - r + k} ${x + w - r + k} ${y + h} ${x + w - r} ${y + h} c ` +
+        `${x + r} ${y + h} l ${x + r - k} ${y + h} ${x} ${y + h - r + k} ${x} ${y + h - r} c ` +
+        `${x} ${y + r} l ${x} ${y + r - k} ${x + r - k} ${y} ${x + r} ${y} c h`);
+    };
+
+    const GREEN = "#0d1a14", RED = "#c0283a", GOLD = "#f2c27b", GOLDS = "#ffe2a8", CREAM = "#fff6ec", DARK = "#1c3a2a";
+
+    // Sfondo + fascia rossa in basso + cornice oro
+    fill(GREEN); c.push(`0 0 ${W} ${H} re f`);
+    fill("#3b0f16"); c.push(`0 0 ${W} 110 re f`);
+    stroke(GOLD, 1.6); c.push(`26 26 ${W - 52} ${H - 52} re S`);
+    stroke(GOLD, 0.5); c.push(`34 34 ${W - 68} ${H - 68} re S`);
+
+    // Scintille decorative
+    fill(GOLD);
+    [[80, 790, 7], [515, 782, 5], [62, 600, 4], [535, 640, 6], [74, 190, 5], [525, 200, 7], [300, 40 + 22, 4]]
+      .forEach(([x, y, s]) => { star(x, y, s, s * 0.28, 4); c.push("f"); });
+
+    // Stella e titolo
+    fill(GOLD); star(W / 2, 772, 17, 7, 5); c.push("f");
+    text(P.title, W / 2, 692, "F4", 54, GOLDS, "center");
+    text(P.subtitle, W / 2, 660, "F3", 19, CREAM, "center");
+
+    // Buono: carta crema con fascia rossa
+    const cx = 70, cw = W - 140, cy = 335, ch = 270;
+    fill(CREAM); roundRect(cx, cy, cw, ch, 16); c.push("f");
+    fill(RED); c.push("q"); roundRect(cx, cy, cw, ch, 16); c.push("W n");
+    c.push(`${cx} ${cy + ch - 40} ${cw} 40 re f Q`);
+    stroke(GOLD, 2); roundRect(cx, cy, cw, ch, 16); c.push("S");
+    text(P.voucherLabel, W / 2, cy + ch - 26, "F2", 13, CREAM, "center", 4);
+    text(P.big, W / 2, cy + ch - 118, "F4", 76, RED, "center");
+    text(P.bigSub, W / 2, cy + ch - 152, "F3", 24, DARK, "center");
+    // divisore con rombo
+    stroke(GOLD, 1); c.push(`${cx + 40} ${cy + ch - 172} m ${W / 2 - 12} ${cy + ch - 172} l S`);
+    c.push(`${W / 2 + 12} ${cy + ch - 172} m ${cx + cw - 40} ${cy + ch - 172} l S`);
+    fill(GOLD); star(W / 2, cy + ch - 172, 6, 6 * 0.3, 4); c.push("f");
+    let y = cy + ch - 198;
+    for (const para of P.details) {
+      for (const ln of wrap(para, "F1", 12.5, cw - 70)) { text(ln, W / 2, y, "F1", 12.5, DARK, "center"); y -= 17; }
+      y -= 5;
+    }
+
+    // Messaggio
+    y = 290;
+    for (const ln of wrap(P.message, "F3", 16, 400)) { text(ln, W / 2, y, "F3", 16, CREAM, "center"); y -= 23; }
+    y -= 14;
+    text(P.signature, W / 2, y, "F3", 22, GOLD, "center");
+    fill(GOLD); star(W / 2, y - 28, 7, 3, 5); c.push("f");
+
+    // Assemblaggio PDF
+    const stream = c.join("\n");
+    const objs = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R /F4 8 0 R >> >> >>`,
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    ].concat(["F1", "F2", "F3", "F4"].map((k) =>
+      `<< /Type /Font /Subtype /Type1 /BaseFont /${FONTS[k][0]} /Encoding /WinAnsiEncoding >>`));
+    let out = "%PDF-1.4\n"; const offs = [];
+    objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+    const xref = out.length;
+    out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` +
+      offs.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("") +
+      `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+    const bytes = new Uint8Array(out.length);
+    for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 255;
+    return new Blob([bytes], { type: "application/pdf" });
+  }
+
   /* ---------- Stati ---------- */
   const lockedEl = $("locked"), unlockedEl = $("unlocked");
   let unlocked = false, timer = null;
@@ -120,6 +261,13 @@ const CONFIG = {
     if (unlocked) return;
     unlocked = true;
     clearTimeout(timer);
+    // Il PDF nasce solo adesso, direttamente sul telefono
+    try {
+      const url = URL.createObjectURL(buildPdf(CONFIG.pdf));
+      const dl = $("pdfDownload"), vw = $("pdfView");
+      dl.href = url; dl.setAttribute("download", CONFIG.pdf.fileName);
+      vw.href = url;
+    } catch (e) { console.error("PDF non generato", e); $("pdfDownload").hidden = $("pdfView").hidden = true; }
     const show = () => {
       lockedEl.hidden = true;
       unlockedEl.hidden = false;

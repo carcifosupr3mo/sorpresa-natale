@@ -179,6 +179,21 @@ body {
 .bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #2f8f55, var(--gold), var(--red)); transition: width 1s linear; }
 .hint { margin: 0; font-size: .9rem; color: var(--text-dim); }
 
+/* ---------- Pulsanti ---------- */
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 56px; padding: 0 24px;       /* >= 52px: comodo col pollice */
+  border-radius: 999px; text-decoration: none;
+  font-size: 1.1rem; font-weight: 700; color: #2a0f14;
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold) 45%, #ff8a8f);
+  box-shadow: 0 12px 30px -8px rgba(214,48,63,.55), inset 0 1px 0 rgba(255,255,255,.5);
+  transition: transform .15s ease, filter .15s ease;
+}
+.btn:active { transform: scale(.97); filter: brightness(.95); }
+.link { display: inline-block; margin-top: 14px; padding: 10px 12px; font-size: .9rem; color: var(--text-dim); text-decoration: underline; text-underline-offset: 3px; }
+.btn[hidden], .link[hidden] { display: none; }
+.btn:focus-visible, .link:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 3px; }
+
 .noscript { position: relative; z-index: 2; text-align: center; padding: 20px; }
 
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
@@ -188,5 +203,5 @@ body {
 /* Accessibilità: niente movimento se richiesto dal sistema */
 @media (prefers-reduced-motion: reduce) {
   .tree, .bulb { animation: none; }
-  .panel, .bar { transition: none; }
+  .panel, .bar, .btn { transition: none; }
 }
