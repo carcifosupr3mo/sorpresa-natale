@@ -1,20 +1,19 @@
 /* ==========================================================
-   Sorpresa di Natale: stile
+   Conto alla rovescia di Natale: stile
    Mobile-first, iOS/WhatsApp friendly, zero dipendenze.
    ========================================================== */
 
 :root {
-  --bg-1: #14102b;      /* notte profonda */
-  --bg-2: #2a1740;      /* prugna */
-  --bg-3: #4a2142;      /* bordeaux soffuso */
-  --gold: #f2c27b;
+  --green-1: #0b1a13;   /* abete notte */
+  --green-2: #11301f;
+  --red-1:   #3b0f16;   /* rosso profondo */
+  --red:     #d6303f;
+  --gold:    #f2c27b;
   --gold-soft: #ffe2a8;
-  --coral: #ff8f7a;
   --text: #fff6ec;
-  --text-dim: rgba(255, 246, 236, .72);
-  --glass: rgba(255, 255, 255, .07);
-  --glass-border: rgba(255, 226, 168, .22);
-  --radius: 24px;
+  --text-dim: rgba(255, 246, 236, .74);
+  --glass-border: rgba(255, 226, 168, .26);
+  --radius: 26px;
 }
 
 * { box-sizing: border-box; }
@@ -23,12 +22,12 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;              /* niente zoom con doppio tap */
-  background: var(--bg-1);
+  background: var(--green-1);
 }
 
 body {
   margin: 0;
-  min-height: 100vh;                        /* fallback */
+  min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
   color: var(--text);
@@ -36,23 +35,46 @@ body {
                Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.45;
   background:
-    radial-gradient(120% 70% at 50% -10%, rgba(255, 143, 122, .22), transparent 60%),
-    radial-gradient(90% 60% at 100% 100%, rgba(242, 194, 123, .14), transparent 60%),
-    linear-gradient(165deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+    radial-gradient(110% 60% at 50% 0%, rgba(214, 48, 63, .28), transparent 62%),
+    radial-gradient(90% 60% at 0% 100%, rgba(47, 143, 85, .25), transparent 60%),
+    linear-gradient(170deg, var(--green-1) 0%, var(--green-2) 50%, var(--red-1) 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Canvas a tutto schermo ---------- */
-#fx, #confetti {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
+#fx, #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #fx { z-index: 0; }
 #confetti { z-index: 3; }
+
+/* ---------- Luci di Natale ---------- */
+.lights {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 2;
+  height: calc(34px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,.35), transparent);
+}
+.lights::before {                            /* il filo */
+  content: "";
+  position: absolute; left: 0; right: 0;
+  top: calc(env(safe-area-inset-top) + 3px);
+  height: 2px; background: rgba(255,255,255,.18);
+}
+.bulb {
+  position: relative;
+  width: 9px; height: 14px; margin-top: calc(4px);
+  border-radius: 50% 50% 55% 55%;
+  background: var(--c);
+  box-shadow: 0 0 10px 2px var(--c);
+  animation: twinkle 2.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 
 /* ---------- Layout ---------- */
 .stage {
@@ -62,171 +84,109 @@ body {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: calc(20px + env(safe-area-inset-top))
-           calc(16px + env(safe-area-inset-right))
+  padding: calc(44px + env(safe-area-inset-top))
+           calc(14px + env(safe-area-inset-right))
            calc(20px + env(safe-area-inset-bottom))
-           calc(16px + env(safe-area-inset-left));
+           calc(14px + env(safe-area-inset-left));
 }
 
 .card {
   width: 100%;
-  max-width: 440px;
-  padding: 32px 20px 26px;
+  max-width: 460px;
+  padding: 28px 16px 24px;
   text-align: center;
   border-radius: var(--radius);
   border: 1px solid var(--glass-border);
-  background: linear-gradient(160deg, rgba(255,255,255,.11), rgba(255,255,255,.04));
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-  box-shadow:
-    0 24px 60px -20px rgba(0, 0, 0, .55),
-    inset 0 1px 0 rgba(255, 255, 255, .12);
+  background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14);
 }
-
 .panel[hidden] { display: none; }
 
 /* Transizione fade + scale tra gli stati */
-.panel {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity .7s ease, transform .7s cubic-bezier(.2, .8, .2, 1);
-}
-.panel.leaving { opacity: 0; transform: scale(.94); }
+.panel { opacity: 1; transform: scale(1); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+.panel.leaving  { opacity: 0; transform: scale(.94); }
 .panel.entering { opacity: 0; transform: scale(1.06); }
 
-.icon {
-  display: block;
-  margin: 0 auto 14px;
-  filter: drop-shadow(0 6px 18px rgba(242, 194, 123, .35));
+.tree {
+  display: block; margin: 0 auto 10px;
+  filter: drop-shadow(0 6px 18px rgba(47, 143, 85, .5));
   animation: float 4.5s ease-in-out infinite;
 }
+.tree.lit { filter: drop-shadow(0 0 22px rgba(255, 217, 120, .75)); }
 
 .title {
   margin: 0 0 8px;
   font-size: clamp(1.6rem, 7vw, 2.1rem);
   line-height: 1.15;
   letter-spacing: -.01em;
-  background: linear-gradient(90deg, var(--gold-soft), var(--coral));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(90deg, var(--gold-soft), #ff8a8f);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
 }
-
 .message {
-  margin: 0 auto 22px;
+  margin: 0 auto 20px;
   max-width: 34ch;
   color: var(--text-dim);
   font-size: 1.02rem;
   white-space: pre-line;                    /* "\n" nei testi = a capo */
 }
 
-/* ---------- Countdown ---------- */
+/* ---------- MEGA TIMER: 2x2, numeri giganti ---------- */
 .countdown {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-bottom: 18px;
 }
-
 .unit {
-  padding: 12px 2px 9px;
-  border-radius: 16px;
+  padding: 14px 4px 10px;
+  border-radius: 20px;
   border: 1px solid var(--glass-border);
-  background: var(--glass);
+  background: linear-gradient(160deg, rgba(214,48,63,.30), rgba(47,143,85,.20));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 8px 20px -10px rgba(0,0,0,.6);
   min-width: 0;
 }
-
+.unit:nth-child(2), .unit:nth-child(3) {   /* alterna rosso/verde come un pacco */
+  background: linear-gradient(160deg, rgba(47,143,85,.30), rgba(214,48,63,.20));
+}
 .num {
   display: block;
-  font-size: clamp(1.55rem, 8vw, 2.1rem);
-  font-weight: 700;
-  line-height: 1.1;
+  font-size: clamp(3rem, 18vw, 4.6rem);
+  font-weight: 800;
+  line-height: 1;
   font-variant-numeric: tabular-nums;       /* numeri a larghezza fissa: niente salti */
   font-feature-settings: "tnum";
   color: var(--gold-soft);
+  text-shadow: 0 0 22px rgba(242,194,123,.45);
+}
+.lbl {
+  display: block; margin-top: 6px;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .16em;
+  color: var(--text-dim);
 }
 
-.lbl {
-  display: block;
-  margin-top: 4px;
-  font-size: .66rem;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--text-dim);
+/* Schermi più larghi / landscape: 4 in fila */
+@media (min-width: 560px) {
+  .card { max-width: 640px; }
+  .countdown { grid-template-columns: repeat(4, 1fr); }
+  .num { font-size: clamp(2.6rem, 8vw, 3.6rem); }
 }
 
 /* ---------- Progress + data ---------- */
-.progress {
-  height: 4px;
-  margin: 0 6px 12px;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, .1);
-  overflow: hidden;
-}
-.bar {
-  height: 100%;
-  width: 0;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--gold), var(--coral));
-  transition: width 1s linear;
-}
-
-.hint {
-  margin: 0;
-  font-size: .88rem;
-  color: var(--text-dim);
-}
-
-/* ---------- Pulsanti ---------- */
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 56px;                         /* >= 52px: comodo col pollice */
-  padding: 0 24px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2a1226;
-  background: linear-gradient(135deg, var(--gold-soft), var(--gold) 45%, var(--coral));
-  box-shadow: 0 12px 30px -8px rgba(255, 143, 122, .55), inset 0 1px 0 rgba(255,255,255,.5);
-  transition: transform .15s ease, filter .15s ease;
-}
-.btn:active { transform: scale(.97); filter: brightness(.95); }
-
-.link {
-  display: inline-block;
-  margin-top: 14px;
-  padding: 10px 12px;                       /* area tap generosa */
-  font-size: .9rem;
-  color: var(--text-dim);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.btn:focus-visible, .link:focus-visible {
-  outline: 3px solid var(--gold-soft);
-  outline-offset: 3px;
-}
+.progress { height: 5px; margin: 0 6px 12px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
+.bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #2f8f55, var(--gold), var(--red)); transition: width 1s linear; }
+.hint { margin: 0; font-size: .9rem; color: var(--text-dim); }
 
 .noscript { position: relative; z-index: 2; text-align: center; padding: 20px; }
 
-/* ---------- Animazioni ---------- */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
-}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* Schermi molto stretti (iPhone SE / mini in landscape ridotto) */
-@media (max-width: 340px) {
-  .card { padding: 26px 12px 22px; }
-  .countdown { gap: 5px; }
-}
+@media (max-width: 340px) { .card { padding: 22px 10px 20px; } .countdown { gap: 7px; } }
 
 /* Accessibilità: niente movimento se richiesto dal sistema */
 @media (prefers-reduced-motion: reduce) {
-  .icon { animation: none; }
-  .panel, .bar, .btn { transition: none; }
+  .tree, .bulb { animation: none; }
+  .panel, .bar { transition: none; }
 }
