@@ -47,11 +47,10 @@ const CONFIG = {
       "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
     ],
     message:
-      "Amore, quest'anno volevo regalarci qualcosa che non si può incartare: del tempo, solo per noi due. " +
-      "Due ore di calma, di calore e di niente a cui pensare, tutte nostre. Prima ci aspetta una piccola sorpresa, " +
-      "poi la SPA, io e te, senza fretta. " +
-      "Grazie di essere il regalo più bello che ho.",
-    signature: "Con tutto il mio amore",
+      "Quando farai la valigia per la nostra vacanza ricordati di mettere dentro costume, ciabatte e asciugamano: " +
+      "come regalo di Natale ti ho preso 2 ore di spa privata, tutta riservata per noi due. " +
+      "Buon Natale amore mio, ti amo sempre di più.",
+    signature: "",              // facoltativo: se vuoto, sotto il messaggio c'è solo un cuore
   },
 };
 
@@ -237,8 +236,12 @@ const CONFIG = {
     y = cy - 34;
     for (const ln of wrap(P.message, "F3", 15.5, 410)) { text(ln, W / 2, y, "F3", 15.5, CREAM, "center"); y -= 22; }
     y -= 12;
-    text(P.signature, W / 2, y, "F3", 22, GOLD, "center");
-    fill(GOLD); star(W / 2, y - 26, 7, 3, 5); c.push("f");
+    if (P.signature) { text(P.signature, W / 2, y, "F3", 22, GOLD, "center"); y -= 26; }
+    // Cuore rosso disegnato (i font standard del PDF non hanno emoji)
+    const hs = 11, hy = y - 4;
+    fill(RED);
+    c.push(`${W / 2} ${f(hy - hs)} m ${f(W / 2 - hs * 1.25)} ${f(hy - hs * 0.1)} ${f(W / 2 - hs * 0.95)} ${f(hy + hs * 0.95)} ${W / 2} ${f(hy + hs * 0.45)} c ` +
+           `${f(W / 2 + hs * 0.95)} ${f(hy + hs * 0.95)} ${f(W / 2 + hs * 1.25)} ${f(hy - hs * 0.1)} ${W / 2} ${f(hy - hs)} c f`);
 
     /* ----- Pagine successive: programma e spese ----- */
     if (P.itinerary || P.costs) newPage(false);
