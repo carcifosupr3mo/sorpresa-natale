@@ -39,8 +39,8 @@ const CONFIG = {
     title: "Buon Natale",
     to: "amore mio",
     paragraphs: [
-      "Quando farai la valigia per la nostra vacanza ricordati di mettere dentro costume, ciabatte e asciugamano:",
-      "come regalo di Natale ti ho preso 2 ore di spa privata, tutta riservata per noi due.",
+      "Ogni giorno con te è un regalo, ma a Natale volevo regalarti qualcosa di speciale: del tempo, solo per noi due.",
+      "Quando farai la valigia per la nostra vacanza, ricordati di mettere dentro costume, ciabatte e asciugamano: ci aspettano 2 ore di spa privata, tutta per noi, lontano da tutto.",
     ],
     closing: "Ti amo sempre di più.",
   },
@@ -267,10 +267,10 @@ const CONFIG = {
     fill(GOLD); star(W / 2, 556, 7, 3, 5); c.push("f");
 
     /* --- messaggio --- */
-    let y = 512;
+    let y = 514;
     for (const para of P.paragraphs) {
-      for (const ln of wrap(para, "F3", 20, 380)) { text(ln, W / 2, y, "F3", 20, INK, "center"); y -= 29; }
-      y -= 14;
+      for (const ln of wrap(para, "F3", 18.5, 410)) { text(ln, W / 2, y, "F3", 18.5, INK, "center"); y -= 26; }
+      y -= 12;
     }
     y -= 10;
     for (const ln of wrap(P.closing, "F5", 31, 390)) { text(ln, W / 2, y, "F5", 31, RED, "center"); y -= 38; }
