@@ -39,7 +39,7 @@ const CONFIG = {
     title: "Buon Natale",
     to: "amore mio",
     paragraphs: [
-      "Ogni giorno con te è un regalo, ma a Natale volevo regalarti qualcosa di speciale: del tempo, solo per noi due.",
+      "Ogni giorno con te è un regalo, ma a Natale volevo regalarti qualcosa di speciale: del tempo, tutto nostro, solo per noi due.",
       "Quando farai la valigia per la nostra vacanza, ricordati di mettere dentro costume, ciabatte e asciugamano: ci aspettano 2 ore di spa privata, tutta per noi, lontano da tutto.",
     ],
     closing: "Ti amo sempre di più.",
