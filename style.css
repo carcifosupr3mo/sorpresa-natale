@@ -231,6 +231,13 @@ body {
   line-height: 1.55; font-style: italic;
   text-wrap: pretty;
 }
+.evidenzia {                                  /* parte evidenziata: effetto pennarello dorato */
+  font-weight: 700; font-style: italic; color: #5b0f1d;
+  background: linear-gradient(transparent 58%, rgba(242,194,123,.75) 58%, rgba(242,194,123,.75) 92%, transparent 92%);
+  padding: 0 .12em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  border-bottom: 2px solid #b3243a;
+}
 .bt-closing {
   margin: 22px 0 8px;
   font-size: clamp(1.5rem, 7.4vw, 2rem);

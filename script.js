@@ -35,7 +35,7 @@ const CONFIG = {
     to: "amore mio",
     paragraphs: [
       "Ogni giorno con te è un regalo, ma a Natale volevo regalarti qualcosa di speciale: del tempo, tutto nostro, solo per noi due.",
-      "Quando farai la valigia per la nostra vacanza, ricordati di mettere dentro costume, ciabatte e asciugamano: ci aspettano 2 ore di spa privata, tutta per noi, lontano da tutto.",
+      "Quando farai la valigia per la nostra vacanza, ricordati di mettere dentro costume, ciabatte e asciugamano: ci aspettano **2 ore di spa privata, tutta per noi**, lontano da tutto.",
     ],
     closing: "Ti amo sempre di più.",
   },
@@ -82,7 +82,16 @@ const CONFIG = {
   $("cardTitle").textContent = C.title;
   $("cardTo").textContent = C.to;
   $("cardClosing").textContent = C.closing;
-  C.paragraphs.forEach((t) => { const p = document.createElement("p"); p.textContent = t; $("cardText").appendChild(p); });
+  // Le parti tra **doppi asterischi** vengono evidenziate (testo sempre inserito come testo, mai come HTML)
+  C.paragraphs.forEach((t) => {
+    const p = document.createElement("p");
+    t.split("**").forEach((part, i) => {
+      if (!part) return;
+      if (i % 2) { const m = document.createElement("strong"); m.className = "evidenzia"; m.textContent = part; p.appendChild(m); }
+      else p.appendChild(document.createTextNode(part));
+    });
+    $("cardText").appendChild(p);
+  });
 
   // "Si sblocca il 25 dicembre alle 00:00" (sempre in ora italiana)
   (function () {
