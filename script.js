@@ -27,7 +27,7 @@ const CONFIG = {
     lockedSubtitle: "Qualcosa di speciale ti aspetta.\nTorna a mezzanotte del 25 dicembre!",
     unlockPrefix: "Si sblocca il",          // + "25 dicembre alle 00:00"
     unlockedTitle: "Buon Natale!",
-    unlockedMessage: "È arrivato il momento…\nHo pensato a una cosa solo per te: scaricala qui sotto.",
+    unlockedMessage: "È arrivato il momento…\nHo pensato a una cosa per noi due: scaricala qui sotto.",
     buttonText: "Scarica il tuo regalo",
     viewText: "Non parte il download? Aprilo nel browser",
   },
@@ -37,19 +37,19 @@ const CONFIG = {
   pdf: {
     fileName: "Il-Tuo-Regalo-di-Natale.pdf",
     title: "Buon Natale",
-    subtitle: "un regalo pensato solo per te",
+    subtitle: "un regalo pensato per noi due",
     voucherLabel: "BUONO REGALO",
     big: "2 ORE",
-    bigSub: "tutte per te, nella SPA",
+    bigSub: "per noi due, nella SPA",
     details: [
       "Lunedì 28 dicembre, dalle 17:30 alle 19:30, in esclusiva all'Hotel Lessinia di Bosco Chiesanuova.",
       "Sauna, bagno vapore, vasca idromassaggio, pediluvio, docce emozionali e zona tisane.",
       "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
     ],
     message:
-      "Amore, quest'anno volevo regalarti qualcosa che non si può incartare: del tempo, solo per te. " +
-      "Due ore di calma, di calore e di niente a cui pensare. Prima ti aspetta una piccola sorpresa, " +
-      "poi la SPA, e io sarò lì accanto a te, felice di vederti sorridere. " +
+      "Amore, quest'anno volevo regalarci qualcosa che non si può incartare: del tempo, solo per noi due. " +
+      "Due ore di calma, di calore e di niente a cui pensare, tutte nostre. Prima ci aspetta una piccola sorpresa, " +
+      "poi la SPA, io e te, senza fretta. " +
       "Grazie di essere il regalo più bello che ho.",
     signature: "Con tutto il mio amore",
   },
