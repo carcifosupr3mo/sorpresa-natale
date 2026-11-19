@@ -49,51 +49,8 @@ const CONFIG = {
     message:
       "Il mio regalo di Natale per te è un po' di tempo solo per coccolarti: due ore di relax totale, " +
       "dopo il nostro arrivo sulla Lessinia e dopo una piccola sorpresa che non ti svelo fino all'hotel. " +
-      "Nelle pagine seguenti trovi tutto il programma di questi due giorni insieme. Tu pensa solo a portare il sorriso più bello.",
+      "Tu pensa solo a portare il sorriso più bello.",
     signature: "Con tutto il cuore",
-
-    // Programma. hl = riga evidenziata, url/urlLabel = link toccabile nel PDF
-    itinerary: [
-      {
-        day: "Lunedì 28 dicembre",
-        subtitle: "Partenza per Bosco Chiesanuova (Lessinia)",
-        rows: [
-          { t: "12:59", d: "Partenza da Isola della Scala (Consorzio A) con il bus ATV 146." },
-          { t: "13:48 - 14:23", d: "Cambio a Verona (Via Pallone B2) con pausa caffè." },
-          { t: "14:23 - 15:33", d: "Bus ATV 110 fino a Bosco Chiesanuova Centro." },
-          { t: "15:35", d: "Check-in in pieno centro alla Casa Leon d'Oro (Piazza Guglielmo Marconi 44-45): camera matrimoniale Superior con balcone e vista sulle montagne." },
-          { t: "15:50 - 17:15", d: "Sorpresa 1: te la svelo solo all'arrivo in hotel!" },
-          { t: "17:30 - 19:30", d: "Sorpresa 2, il tuo regalo: SPA in esclusiva per 2 ore all'Hotel Lessinia (Piazza Alpini 3): sauna, bagno vapore, vasca idromassaggio, pediluvio, docce emozionali e zona tisane.", hl: true },
-          { t: "19:45 - 21:00", d: "Cena insieme in centro oppure nel ristorante dell'hotel (aperto il lunedì sera).",
-            url: "https://www.casaleondoro.com/wp-content/uploads/2026/05/menuSITO2026.pdf", urlLabel: "Guarda il menu (tocca qui)" },
-        ],
-      },
-      {
-        day: "Martedì 29 dicembre",
-        subtitle: "Visita al paese e rientro",
-        rows: [
-          { t: "08:15 - 09:30", d: "Colazione a buffet in hotel (già inclusa nella tariffa)." },
-          { t: "09:45", d: "Check-out (entro le 10:00) e deposito bagagli in reception." },
-          { t: "10:00 - 12:30", d: "Giro in paese e passeggiata tra le vie del centro e i dintorni." },
-          { t: "12:30 - 13:45", d: "Pranzo in paese (il ristorante dell'hotel il martedì è chiuso per turno)." },
-          { t: "14:20 - 15:23", d: "Bus ATV 110 da Bosco Chiesanuova Centro a Verona (Via Pallone A)." },
-          { t: "15:32 - 16:19", d: "Cambio rapido a Verona Via Pallone (9 minuti) e bus ATV 146 fino a Isola della Scala (Consorzio B)." },
-        ],
-      },
-    ],
-
-    costs: {
-      subtitle: "per 2 persone",
-      rows: [
-        ["Hotel + colazione (Casa Leon d'Oro)", "150,00 €", "https://www.casaleondoro.com/"],
-        ["Biglietti bus A/R (8,50 € a persona a tratta: 3,90 + 4,60)", "34,00 €"],
-        ["SPA privata, 2 ore all'Hotel Lessinia", "90,00 €"],
-        ["Cena + pranzo (stima)", "~100,00 €"],
-      ],
-      total: "374,00 €",
-      perPerson: "187,00 € a persona",
-      note: "Ci aspetta un weekend che sa di montagna, di caldo e di noi due. Non vedo l'ora!",
-    },
   },
 };
 
@@ -283,11 +240,12 @@ const CONFIG = {
     fill(GOLD); star(W / 2, y - 26, 7, 3, 5); c.push("f");
 
     /* ----- Pagine successive: programma e spese ----- */
-    newPage(false); y = 742;
+    if (P.itinerary || P.costs) newPage(false);
+    y = 742;
     const ensure = (h) => { if (y - h < 62) { newPage(false); y = 780; } };
     const X_T = 60, X_L = 140, X_D = 156, MAXW = 372;
 
-    for (const day of P.itinerary) {
+    for (const day of P.itinerary || []) {
       ensure(120);
       text(day.day, W / 2, y, "F4", 26, GOLDS, "center");
       text(day.subtitle, W / 2, y - 20, "F3", 15, CREAM, "center");
@@ -316,6 +274,7 @@ const CONFIG = {
 
     // Riepilogo spese (pagina dedicata)
     const K = P.costs;
+    if (K) {
     newPage(false); y = 690;
     fill(GOLD); star(W / 2, 770, 15, 6, 5); c.push("f");
     text("Riepilogo spese", W / 2, y, "F4", 34, GOLDS, "center");
@@ -340,6 +299,7 @@ const CONFIG = {
     y -= 130;
     for (const ln of wrap(K.note, "F3", 16, 380)) { text(ln, W / 2, y, "F3", 16, CREAM, "center"); y -= 23; }
     fill(GOLD); star(W / 2, y - 14, 9, 4, 5); c.push("f");
+    }
 
     // Assemblaggio PDF
     const objs = [];
