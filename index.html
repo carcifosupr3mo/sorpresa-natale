@@ -21,9 +21,31 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l10 22H6z' fill='%232f8f55'/%3E%3Crect x='14' y='24' width='4' height='5' fill='%238a5a3a'/%3E%3Ccircle cx='16' cy='5' r='2.5' fill='%23f2c27b'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
+  <!-- Disegni riutilizzabili (agrifoglio e alberello) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <g id="holly">
+        <path d="M0 0C12-10 30-10 46 0C30 10 12 10 0 0Z" fill="#2f7d4f" transform="rotate(25)"/>
+        <path d="M0 0C12-10 30-10 46 0C30 10 12 10 0 0Z" fill="#256a42" transform="rotate(-25)"/>
+        <path d="M0 0C12-10 30-10 46 0C30 10 12 10 0 0Z" fill="#2f7d4f" transform="rotate(90) scale(.87)"/>
+        <circle r="5.5" fill="#c0283a"/><circle cx="7" cy="3" r="5" fill="#c0283a"/><circle cx="2" cy="-7" r="5" fill="#c0283a"/>
+        <circle cx="-1.5" cy="-1.5" r="1.5" fill="#ff9aa2"/>
+      </g>
+      <g id="tree">
+        <rect x="-3" y="-14" width="6" height="14" fill="#8a5a3a"/>
+        <path d="M-25-12H25L0-62Z" fill="#1f6b43"/>
+        <path d="M-20-36H20L0-80Z" fill="#2a8355"/>
+        <path d="M-14-58H14L0-96Z" fill="#35996a"/>
+        <path d="M0-108L2.4-102L8-101.5L3.8-97.5L5-92L0-95L-5-92L-3.8-97.5L-8-101.5L-2.4-102Z" fill="#f2c27b"/>
+        <circle cx="-9" cy="-30" r="2.4" fill="#c0283a"/><circle cx="10" cy="-22" r="2.4" fill="#f2c27b"/>
+        <circle cx="-4" cy="-52" r="2" fill="#f2c27b"/><circle cx="6" cy="-66" r="2" fill="#c0283a"/>
+      </g>
+    </defs>
+  </svg>
+
   <canvas id="fx" aria-hidden="true"></canvas>
   <canvas id="confetti" aria-hidden="true"></canvas>
 
@@ -58,26 +80,50 @@
       <p id="unlockLabel" class="hint"></p>
     </section>
 
-    <!-- ============ NATALE! ============ -->
-    <section id="unlocked" class="panel card" aria-labelledby="unlockedTitle" hidden>
-      <svg class="tree lit" viewBox="0 0 64 72" width="84" height="94" aria-hidden="true">
-        <path d="M32 10 49 34H40l13 20H11l13-20h-9z" fill="#2f8f55"/>
-        <path d="M32 10 49 34H40l13 20H32z" fill="#237a47"/>
-        <rect x="28" y="54" width="8" height="10" rx="1.5" fill="#8a5a3a"/>
-        <path d="M32 1l2.2 4.6 5 .6-3.7 3.4 1 5-4.5-2.6-4.5 2.6 1-5-3.7-3.4 5-.6z" fill="#ffd978"/>
-        <circle cx="26" cy="36" r="2.2" fill="#ff5a5f"/><circle cx="38" cy="44" r="2.2" fill="#ffd978"/>
-        <circle cx="24" cy="50" r="2.2" fill="#ffd978"/><circle cx="35" cy="28" r="2" fill="#ff5a5f"/>
+    <!-- ============ IL BIGLIETTO (dopo la mezzanotte) ============ -->
+    <article id="unlocked" class="panel biglietto" aria-labelledby="cardTitle" hidden>
+      <svg class="deco" viewBox="0 0 460 160" aria-hidden="true">
+        <use href="#holly" transform="translate(50,52) rotate(-35) scale(1.1)"/>
+        <use href="#holly" transform="translate(410,52) rotate(215) scale(1.1)"/>
+        <g><line x1="175" y1="0" x2="175" y2="52" stroke="#d9b46a"/><rect x="171" y="52" width="8" height="6" fill="#d9b46a"/>
+           <circle cx="175" cy="75" r="17" fill="#b3243a"/><circle cx="169" cy="69" r="4" fill="#ff8d9a"/>
+           <path d="M158 79Q175 70 192 79" stroke="#f2c27b" fill="none" stroke-width="1.4"/></g>
+        <g><line x1="230" y1="0" x2="230" y2="70" stroke="#d9b46a"/><rect x="226" y="70" width="8" height="6" fill="#d9b46a"/>
+           <circle cx="230" cy="100" r="24" fill="#2a8355"/><circle cx="221" cy="91" r="5.5" fill="#7fd1a3"/>
+           <path d="M207 105Q230 93 253 105" stroke="#f2c27b" fill="none" stroke-width="1.5"/></g>
+        <g><line x1="285" y1="0" x2="285" y2="48" stroke="#d9b46a"/><rect x="281" y="48" width="8" height="6" fill="#d9b46a"/>
+           <circle cx="285" cy="68" r="15" fill="#d9a94f"/><circle cx="280" cy="63" r="3.6" fill="#ffe9b0"/>
+           <path d="M270 71Q285 63 300 71" stroke="#fff3cf" fill="none" stroke-width="1.2"/></g>
       </svg>
-      <h2 id="unlockedTitle" class="title"></h2>
-      <p id="unlockedMessage" class="message"></p>
-      <!-- href impostati da JS solo allo sblocco: il PDF non esiste prima -->
-      <a id="pdfDownload" class="btn" target="_blank" rel="noopener"></a>
-      <a id="pdfView" class="link" target="_blank" rel="noopener"></a>
-    </section>
+
+      <div class="bt-body">
+        <h2 id="cardTitle" class="bt-title"></h2>
+        <p class="bt-to">
+          <svg class="heart" viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C3 14 1 9 1 6a5.5 5.5 0 0 1 11-2 5.5 5.5 0 0 1 11 2c0 3-2 8-11 15z" fill="#b3243a"/></svg>
+          <span id="cardTo"></span>
+          <svg class="heart" viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C3 14 1 9 1 6a5.5 5.5 0 0 1 11-2 5.5 5.5 0 0 1 11 2c0 3-2 8-11 15z" fill="#b3243a"/></svg>
+        </p>
+        <div class="divider" aria-hidden="true"></div>
+        <div id="cardText" class="bt-text"></div>
+        <p id="cardClosing" class="bt-closing"></p>
+        <svg class="heart big" viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C3 14 1 9 1 6a5.5 5.5 0 0 1 11-2 5.5 5.5 0 0 1 11 2c0 3-2 8-11 15z" fill="#b3243a"/></svg>
+      </div>
+
+      <svg class="deco" viewBox="0 0 460 140" aria-hidden="true">
+        <path d="M14 122C100 110 200 126 280 117C360 108 420 120 446 114V128H14Z" fill="#dde6f0"/>
+        <use href="#tree" transform="translate(108,120) scale(.6)"/>
+        <use href="#tree" transform="translate(168,121) scale(.8)"/>
+        <use href="#tree" transform="translate(230,122) scale(1)"/>
+        <use href="#tree" transform="translate(292,121) scale(.76)"/>
+        <use href="#tree" transform="translate(352,120) scale(.56)"/>
+        <use href="#holly" transform="translate(42,104) rotate(35) scale(1)"/>
+        <use href="#holly" transform="translate(418,104) rotate(145) scale(1)"/>
+      </svg>
+    </article>
 
   </main>
 
   <noscript><p class="noscript">Per vedere il conto alla rovescia serve JavaScript attivo.</p></noscript>
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

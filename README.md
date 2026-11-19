@@ -9,8 +9,7 @@ style.css    stile
 script.js    CONFIG in cima + logica
 ```
 
-Dopo mezzanotte compare il messaggio di Natale con i coriandoli e il pulsante **Scarica il tuo regalo**.
-Il PDF (buono per 2 ore di SPA) **non è un file sul server**: viene generato dal telefono solo allo sblocco, quindi nessuno può scoprirne l'URL in anticipo.
+Dopo mezzanotte compare, al posto del timer, un **biglietto di Natale** illustrato con i coriandoli (è una pagina, non un PDF: si vede bene su qualsiasi telefono).
 Non ci sono scorciatoie di test per sbloccare la pagina prima.
 
 Nota: il testo del regalo sta in `script.js`, quindi chi apre "vedi sorgente" del sito lo potrebbe leggere. Per una persona che apre il link da WhatsApp non è un problema reale.
@@ -26,7 +25,7 @@ Apri `script.js`: tutto è nell'oggetto `CONFIG` in cima.
 | `ambientEffect` | `"snow"`, `"stars"` oppure `"none"` |
 | `useServerTime` | `true`: usa l'ora del server, così cambiare l'orologio del telefono non anticipa nulla |
 | `texts` | Testi della pagina (titolo, messaggio di Natale, pulsante). `\n` = a capo |
-| `pdf` | Biglietto di Natale in PDF (1 pagina): titolo, destinatario, paragrafi, frase finale, nome del file |
+| `card` | Testo del biglietto: titolo, destinatario, paragrafi, frase finale |
 
 Per vedere lo stato finale in locale, cambia temporaneamente `unlockDate` con una data passata (e rimettila prima del deploy).
 
