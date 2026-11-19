@@ -26,7 +26,7 @@ Apri `script.js`: tutto è nell'oggetto `CONFIG` in cima.
 | `ambientEffect` | `"snow"`, `"stars"` oppure `"none"` |
 | `useServerTime` | `true`: usa l'ora del server, così cambiare l'orologio del telefono non anticipa nulla |
 | `texts` | Testi della pagina (titolo, messaggio di Natale, pulsante). `\n` = a capo |
-| `pdf` | Contenuto del biglietto PDF (1 pagina): titolo, "2 ORE", dettagli, messaggio, firma, nome del file |
+| `pdf` | Biglietto di Natale in PDF (1 pagina): titolo, destinatario, paragrafi, frase finale, nome del file |
 
 Per vedere lo stato finale in locale, cambia temporaneamente `unlockDate` con una data passata (e rimettila prima del deploy).
 

@@ -35,22 +35,14 @@ const CONFIG = {
   // Il PDF viene CREATO dal telefono solo allo sblocco: sul server non esiste nessun file
   // da scoprire in anticipo. Modifica qui sotto il contenuto.
   pdf: {
-    fileName: "Il-Tuo-Regalo-di-Natale.pdf",
+    fileName: "Il-Tuo-Biglietto-di-Natale.pdf",
     title: "Buon Natale",
-    subtitle: "un regalo pensato per noi due",
-    voucherLabel: "BUONO REGALO",
-    big: "2 ORE",
-    bigSub: "per noi due, nella SPA",
-    details: [
-      "Lunedì 28 dicembre, dalle 17:30 alle 19:30, in esclusiva all'Hotel Lessinia di Bosco Chiesanuova.",
-      "Sauna, bagno vapore, vasca idromassaggio, pediluvio, docce emozionali e zona tisane.",
-      "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
+    to: "amore mio",
+    paragraphs: [
+      "Quando farai la valigia per la nostra vacanza ricordati di mettere dentro costume, ciabatte e asciugamano:",
+      "come regalo di Natale ti ho preso 2 ore di spa privata, tutta riservata per noi due.",
     ],
-    message:
-      "Quando farai la valigia per la nostra vacanza ricordati di mettere dentro costume, ciabatte e asciugamano: " +
-      "come regalo di Natale ti ho preso 2 ore di spa privata, tutta riservata per noi due. " +
-      "Buon Natale amore mio, ti amo sempre di più.",
-    signature: "",              // facoltativo: se vuoto, sotto il messaggio c'è solo un cuore
+    closing: "Ti amo sempre di più.",
   },
 };
 
@@ -140,36 +132,33 @@ const CONFIG = {
 
   /* ---------- Generatore PDF (nessuna libreria, nessun file sul server) ---------- */
   function buildPdf(P) {
-    const W = 595, H = 842;
-    const pages = [];                     // { c: [operatori], annots: [{rect, url}] }
-    let pg = null, c = null;
+    const W = 595, H = 842, c = [];
     const f = (n) => +n.toFixed(2);
     const rgb = (h) => [1, 3, 5].map((i) => f(parseInt(h.substr(i, 2), 16) / 255)).join(" ");
     const fill = (h) => c.push(rgb(h) + " rg");
     const stroke = (h, w) => c.push(rgb(h) + " RG " + w + " w");
     const FONTS = {
       F1: ["Helvetica", "normal", "Helvetica, Arial, sans-serif"],
-      F2: ["Helvetica-Bold", "bold", "Helvetica, Arial, sans-serif"],
       F3: ["Times-Italic", "italic", "'Times New Roman', Times, serif"],
       F4: ["Times-Bold", "bold", "'Times New Roman', Times, serif"],
+      F5: ["Times-BoldItalic", "italic bold", "'Times New Roman', Times, serif"],
     };
     // Codifica WinAnsi (accenti italiani ok): niente caratteri oltre Latin-1
     const latin1 = (t) => String(t)
       .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
       .replace(/[–—]/g, "-").replace(/…/g, "...")
-      .replace(/[^\x00-\xFF\u20AC]/g, "?");
+      .replace(/[^\x00-\xFF]/g, "?");
     const esc = (t) => t.replace(/([\\()])/g, "\\$1");
     const mctx = document.createElement("canvas").getContext("2d");
-    const measure = (t, font, size, tc) => {
-      const [, style, fam] = FONTS[font];
-      mctx.font = `${style} ${size}px ${fam}`;
-      return mctx.measureText(t).width + (tc || 0) * t.length;
+    const measure = (t, font, size) => {
+      mctx.font = `${FONTS[font][1]} ${size}px ${FONTS[font][2]}`;
+      return mctx.measureText(t).width;
     };
-    const text = (t, x, y, font, size, color, align, tc) => {
+    const text = (t, x, y, font, size, color, align) => {
       t = latin1(t);
-      const w = measure(t, font, size, tc);
+      const w = measure(t, font, size);
       const x0 = align === "center" ? x - w / 2 : align === "right" ? x - w : x;
-      c.push(`BT /${font} ${size} Tf ${rgb(color)} rg ${tc || 0} Tc ${f(x0)} ${f(y)} Td (${esc(t.replace(/\u20AC/g, "\x80"))}) Tj ET`);
+      c.push(`BT /${font} ${size} Tf ${rgb(color)} rg ${f(x0)} ${f(y)} Td (${esc(t)}) Tj ET`);
       return w;
     };
     const wrap = (t, font, size, maxW) => {
@@ -181,149 +170,127 @@ const CONFIG = {
       if (line) out.push(line);
       return out;
     };
-    const poly = (pts) => c.push(pts.map((p, i) => `${f(p[0])} ${f(p[1])} ${i ? "l" : "m"}`).join(" ") + " h");
-    const star = (cx, cy, R, r, n) => poly(Array.from({ length: n * 2 }, (_, i) => {
-      const a = Math.PI / 2 + (i * Math.PI) / n, rad = i % 2 ? r : R;
-      return [cx + Math.cos(a) * rad, cy + Math.sin(a) * rad];
-    }));
+
+    /* --- forme --- */
+    const K = 0.5523;
+    const circle = (x, y, r) => c.push(
+      `${f(x + r)} ${f(y)} m ${f(x + r)} ${f(y + K * r)} ${f(x + K * r)} ${f(y + r)} ${f(x)} ${f(y + r)} c ` +
+      `${f(x - K * r)} ${f(y + r)} ${f(x - r)} ${f(y + K * r)} ${f(x - r)} ${f(y)} c ` +
+      `${f(x - r)} ${f(y - K * r)} ${f(x - K * r)} ${f(y - r)} ${f(x)} ${f(y - r)} c ` +
+      `${f(x + K * r)} ${f(y - r)} ${f(x + r)} ${f(y - K * r)} ${f(x + r)} ${f(y)} c h`);
     const roundRect = (x, y, w, h, r) => {
-      const k = r * 0.5523;
+      const k = r * K;
       c.push(`${x + r} ${y} m ${x + w - r} ${y} l ${x + w - r + k} ${y} ${x + w} ${y + r - k} ${x + w} ${y + r} c ` +
         `${x + w} ${y + h - r} l ${x + w} ${y + h - r + k} ${x + w - r + k} ${y + h} ${x + w - r} ${y + h} c ` +
         `${x + r} ${y + h} l ${x + r - k} ${y + h} ${x} ${y + h - r + k} ${x} ${y + h - r} c ` +
         `${x} ${y + r} l ${x} ${y + r - k} ${x + r - k} ${y} ${x + r} ${y} c h`);
     };
-    const link = (x, y, w, h, url) => pg.annots.push({ rect: [x, y, x + w, y + h], url });
-
-    const GREEN = "#0d1a14", RED = "#c0283a", GOLD = "#f2c27b", GOLDS = "#ffe2a8", CREAM = "#fff6ec", DARK = "#1c3a2a", WINE = "#3b0f16";
-
-    function newPage(first) {
-      pg = { c: [], annots: [] }; c = pg.c; pages.push(pg);
-      fill(GREEN); c.push(`0 0 ${W} ${H} re f`);
-      if (first) { fill(WINE); c.push(`0 0 ${W} 110 re f`); }
-      stroke(GOLD, 1.6); c.push(`26 26 ${W - 52} ${H - 52} re S`);
-      stroke(GOLD, 0.5); c.push(`34 34 ${W - 68} ${H - 68} re S`);
-      fill(GOLD);
-      (first ? [[80, 790, 7], [515, 782, 5], [62, 600, 4], [535, 640, 6], [74, 190, 5], [525, 200, 7], [300, 62, 4]]
-             : [[80, 800, 5], [515, 800, 5]])
-        .forEach(([x, y, s]) => { star(x, y, s, s * 0.28, 4); c.push("f"); });
-    }
-
-    /* ----- Pagina 1: il regalo ----- */
-    newPage(true);
-    fill(GOLD); star(W / 2, 772, 17, 7, 5); c.push("f");
-    text(P.title, W / 2, 692, "F4", 54, GOLDS, "center");
-    text(P.subtitle, W / 2, 660, "F3", 19, CREAM, "center");
-
-    const cx = 70, cw = W - 140, ch = 322, cy = 640 - 20 - ch;
-    fill(CREAM); roundRect(cx, cy, cw, ch, 16); c.push("f");
-    fill(RED); c.push("q"); roundRect(cx, cy, cw, ch, 16); c.push("W n");
-    c.push(`${cx} ${cy + ch - 40} ${cw} 40 re f Q`);
-    stroke(GOLD, 2); roundRect(cx, cy, cw, ch, 16); c.push("S");
-    text(P.voucherLabel, W / 2, cy + ch - 26, "F2", 13, CREAM, "center", 4);
-    text(P.big, W / 2, cy + ch - 118, "F4", 76, RED, "center");
-    text(P.bigSub, W / 2, cy + ch - 152, "F3", 24, DARK, "center");
-    stroke(GOLD, 1);
-    c.push(`${cx + 40} ${cy + ch - 172} m ${W / 2 - 12} ${cy + ch - 172} l S`);
-    c.push(`${W / 2 + 12} ${cy + ch - 172} m ${cx + cw - 40} ${cy + ch - 172} l S`);
-    fill(GOLD); star(W / 2, cy + ch - 172, 6, 6 * 0.3, 4); c.push("f");
-    let y = cy + ch - 196;
-    for (const para of P.details) {
-      for (const ln of wrap(para, "F1", 12, cw - 60)) { text(ln, W / 2, y, "F1", 12, DARK, "center"); y -= 16.5; }
-      y -= 5;
-    }
-
-    y = cy - 34;
-    for (const ln of wrap(P.message, "F3", 15.5, 410)) { text(ln, W / 2, y, "F3", 15.5, CREAM, "center"); y -= 22; }
-    y -= 12;
-    if (P.signature) { text(P.signature, W / 2, y, "F3", 22, GOLD, "center"); y -= 26; }
-    // Cuore rosso disegnato (i font standard del PDF non hanno emoji)
-    const hs = 11, hy = y - 4;
-    fill(RED);
-    c.push(`${W / 2} ${f(hy - hs)} m ${f(W / 2 - hs * 1.25)} ${f(hy - hs * 0.1)} ${f(W / 2 - hs * 0.95)} ${f(hy + hs * 0.95)} ${W / 2} ${f(hy + hs * 0.45)} c ` +
-           `${f(W / 2 + hs * 0.95)} ${f(hy + hs * 0.95)} ${f(W / 2 + hs * 1.25)} ${f(hy - hs * 0.1)} ${W / 2} ${f(hy - hs)} c f`);
-
-    /* ----- Pagine successive: programma e spese ----- */
-    if (P.itinerary || P.costs) newPage(false);
-    y = 742;
-    const ensure = (h) => { if (y - h < 62) { newPage(false); y = 780; } };
-    const X_T = 60, X_L = 140, X_D = 156, MAXW = 372;
-
-    for (const day of P.itinerary || []) {
-      ensure(120);
-      text(day.day, W / 2, y, "F4", 26, GOLDS, "center");
-      text(day.subtitle, W / 2, y - 20, "F3", 15, CREAM, "center");
-      y -= 52;
-      for (const r of day.rows) {
-        const lines = wrap(r.d, "F1", 11, MAXW);
-        const h = lines.length * 15 + (r.url ? 15 : 0);
-        ensure(h + 19);
-        stroke("#6b5a3a", 1); c.push(`${X_L} ${f(y + 13)} m ${X_L} ${f(y - h - 1)} l S`);   // linea del tempo
-        if (r.hl) {
-          fill(WINE); stroke(GOLD, 1);
-          roundRect(46, f(y - h + 3), W - 92, h + 14, 8); c.push("B");
-        }
-        fill(r.hl ? GOLD : "#8fd4a8"); star(X_L, y + 3.5, 3.6, 1.6, 4); c.push("f");
-        text(r.t, X_T, y, "F2", 10.5, GOLD);
-        lines.forEach((ln, i) => text(ln, X_D, y - i * 15, r.hl ? "F2" : "F1", 11, CREAM));
-        if (r.url) {
-          const w = text(r.urlLabel, X_D, y - lines.length * 15, "F1", 10.5, GOLD);
-          stroke(GOLD, 0.6); c.push(`${X_D} ${f(y - lines.length * 15 - 2)} m ${f(X_D + w)} ${f(y - lines.length * 15 - 2)} l S`);
-          link(X_D, y - lines.length * 15 - 3, w, 13, r.url);
-        }
-        y -= h + 19;
+    const poly = (pts) => c.push(pts.map((p, i) => `${f(p[0])} ${f(p[1])} ${i ? "l" : "m"}`).join(" ") + " h");
+    const star = (cx, cy, R, r, n) => poly(Array.from({ length: n * 2 }, (_, i) => {
+      const a = Math.PI / 2 + (i * Math.PI) / n, rad = i % 2 ? r : R;
+      return [cx + Math.cos(a) * rad, cy + Math.sin(a) * rad];
+    }));
+    const heart = (cx, cy, s, color) => {
+      fill(color);
+      c.push(`${f(cx)} ${f(cy - s)} m ${f(cx - s * 1.25)} ${f(cy - s * 0.1)} ${f(cx - s * 0.95)} ${f(cy + s * 0.95)} ${f(cx)} ${f(cy + s * 0.45)} c ` +
+             `${f(cx + s * 0.95)} ${f(cy + s * 0.95)} ${f(cx + s * 1.25)} ${f(cy - s * 0.1)} ${f(cx)} ${f(cy - s)} c f`);
+    };
+    const snowflake = (cx, cy, r, color) => {
+      stroke(color, 0.9);
+      for (let i = 0; i < 3; i++) {
+        const a = (i * Math.PI) / 3;
+        c.push(`${f(cx - Math.cos(a) * r)} ${f(cy - Math.sin(a) * r)} m ${f(cx + Math.cos(a) * r)} ${f(cy + Math.sin(a) * r)} l S`);
       }
-      y -= 16;
-    }
+    };
+    // foglia di agrifoglio ruotata
+    const leaf = (x, y, len, ang, color) => {
+      const w = len * 0.32, a = (ang * Math.PI) / 180, co = f(Math.cos(a)), si = f(Math.sin(a));
+      fill(color);
+      c.push(`q ${co} ${si} ${-si} ${co} ${f(x)} ${f(y)} cm 0 0 m ${f(len * .25)} ${f(w)} ${f(len * .7)} ${f(w * 1.1)} ${f(len)} 0 c ` +
+             `${f(len * .7)} ${f(-w * 1.1)} ${f(len * .25)} ${f(-w)} 0 0 c f Q`);
+    };
+    const holly = (x, y, s, ang) => {
+      leaf(x, y, 46 * s, ang + 25, "#2f7d4f");
+      leaf(x, y, 46 * s, ang - 25, "#256a42");
+      leaf(x, y, 40 * s, ang + 90, "#2f7d4f");
+      fill("#c0283a"); circle(x, y, 5.2 * s); c.push("f");
+      circle(x + 7 * s, y + 3 * s, 4.6 * s); c.push("f");
+      circle(x + 2 * s, y - 7 * s, 4.6 * s); c.push("f");
+      fill("#ff9aa2"); circle(x - 1.5 * s, y + 1.5 * s, 1.4 * s); c.push("f");
+    };
+    const bauble = (x, cy, r, color, light) => {
+      stroke("#d9b46a", 0.9); c.push(`${x} 792 m ${x} ${f(cy + r + 6)} l S`);
+      fill("#d9b46a"); c.push(`${f(x - 4)} ${f(cy + r)} 8 6 re f`);
+      fill(color); circle(x, cy, r); c.push("f");
+      fill(light); circle(x - r * 0.32, cy + r * 0.34, r * 0.22); c.push("f");
+      stroke("#f2c27b", 1.2); c.push(`${f(x - r * 0.93)} ${f(cy - r * 0.2)} m ${f(x - r * 0.4)} ${f(cy - r * 0.55)} ${f(x + r * 0.4)} ${f(cy - r * 0.55)} ${f(x + r * 0.93)} ${f(cy - r * 0.2)} c S`);
+    };
+    const tree = (x, base, h, wd) => {
+      fill("#8a5a3a"); c.push(`${f(x - 3)} ${f(base)} 6 ${f(h * 0.14)} re f`);
+      [["#1f6b43", 0, 0.55, 1], ["#2a8355", 0.28, 0.45, 0.78], ["#35996a", 0.52, 0.36, 0.55]].forEach(([col, off, th, ws]) => {
+        fill(col);
+        const y0 = base + h * 0.12 + h * off, hh = h * (th + 0.1);
+        poly([[x - wd * ws, y0], [x + wd * ws, y0], [x, y0 + hh]]); c.push("f");
+      });
+      fill("#f2c27b"); star(x, base + h + 3, 7, 3, 5); c.push("f");
+      fill("#c0283a"); circle(x - wd * 0.28, base + h * 0.3, 2.4); c.push("f");
+      fill("#f2c27b"); circle(x + wd * 0.3, base + h * 0.2, 2.4); c.push("f");
+    };
 
-    // Riepilogo spese (pagina dedicata)
-    const K = P.costs;
-    if (K) {
-    newPage(false); y = 690;
-    fill(GOLD); star(W / 2, 770, 15, 6, 5); c.push("f");
-    text("Riepilogo spese", W / 2, y, "F4", 34, GOLDS, "center");
-    text(K.subtitle, W / 2, y - 24, "F3", 17, CREAM, "center");
-    y -= 76;
-    for (const [label, amount, url] of K.rows) {
-      const lines = wrap(label, "F1", 13, 320);
-      lines.forEach((ln, i) => text(ln, 64, y - i * 17, "F1", 13, CREAM));
-      text(amount, W - 64, y, "F2", 14, GOLD, "right");
-      if (url) { link(64, y - 15, 300, 17, url); }
-      stroke("#6b5a3a", 0.6);
-      const by = y - (lines.length - 1) * 17 - 12;
-      c.push(`64 ${f(by)} m ${W - 64} ${f(by)} l S`);
-      y = by - 26;
-    }
-    y -= 6;
-    fill(CREAM); roundRect(64, y - 86, W - 128, 100, 16); c.push("f");
-    stroke(GOLD, 2); roundRect(64, y - 86, W - 128, 100, 16); c.push("S");
-    text("TOTALE", 88, y - 22, "F2", 12, RED, "left", 4);
-    text(K.total, W - 88, y - 40, "F4", 40, RED, "right");
-    text(K.perPerson, 88, y - 68, "F3", 18, DARK, "left");
-    y -= 130;
-    for (const ln of wrap(K.note, "F3", 16, 380)) { text(ln, W / 2, y, "F3", 16, CREAM, "center"); y -= 23; }
-    fill(GOLD); star(W / 2, y - 14, 9, 4, 5); c.push("f");
-    }
+    const WINE = "#5b0f1d", RED = "#b3243a", GOLD = "#d9a94f", GOLDL = "#f2c27b", PAPER = "#fff8ee", INK = "#4a1a22";
 
-    // Assemblaggio PDF
-    const objs = [];
-    const add = (s) => objs.push(s);
-    add("<< /Type /Catalog /Pages 2 0 R >>");
-    add(null);                                         // Pages: riempito dopo
-    ["F1", "F2", "F3", "F4"].forEach((k) =>
-      add(`<< /Type /Font /Subtype /Type1 /BaseFont /${FONTS[k][0]} /Encoding /WinAnsiEncoding >>`));
-    const kids = [];
-    for (const p of pages) {
-      const annotIds = p.annots.map((a) => add(
-        `<< /Type /Annot /Subtype /Link /Rect [${a.rect.map(f).join(" ")}] /Border [0 0 0] /A << /S /URI /URI (${esc(latin1(a.url))}) >> >>`));
-      const stream = p.c.join("\n");
-      const cid = add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-      const annots = annotIds.length ? ` /Annots [${annotIds.map((i) => i + " 0 R").join(" ")}]` : "";
-      kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents ${cid} 0 R` +
-        ` /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >>${annots} >>`));
-    }
-    objs[1] = `<< /Type /Pages /Kids [${kids.map((k) => k + " 0 R").join(" ")}] /Count ${kids.length} >>`;
+    /* --- sfondo bordeaux con fiocchi di neve --- */
+    fill(WINE); c.push(`0 0 ${W} ${H} re f`);
+    [[24, 60], [26, 200], [22, 330], [28, 470], [24, 610], [26, 760], [571, 120], [569, 260], [572, 400], [568, 540], [571, 690], [570, 810],
+     [120, 24], [300, 20], [470, 24], [160, 820], [340, 822], [500, 818]]
+      .forEach(([x, y]) => snowflake(x, y, 6, "#e8b8c0"));
 
+    /* --- biglietto crema con doppia cornice dorata --- */
+    fill(PAPER); roundRect(50, 50, W - 100, H - 100, 22); c.push("f");
+    stroke(GOLD, 1.8); roundRect(50, 50, W - 100, H - 100, 22); c.push("S");
+    stroke(GOLD, 0.6); roundRect(62, 62, W - 124, H - 124, 15); c.push("S");
+    [[110, 690], [485, 160], [480, 700], [120, 150], [300, 560], [215, 275], [390, 280]]
+      .forEach(([x, y]) => snowflake(x, y, 5, "#dfe6ee"));
+
+    /* --- decorazioni: agrifoglio negli angoli, palline appese --- */
+    holly(88, 750, 1.05, -35); holly(507, 750, 1.05, 215);
+    holly(88, 118, 1, 35);     holly(507, 118, 1, 145);
+    bauble(235, 735, 17, RED, "#ff8d9a");
+    bauble(298, 712, 24, "#2a8355", "#7fd1a3");
+    bauble(360, 738, 15, "#d9a94f", "#ffe9b0");
+
+    /* --- titolo --- */
+    text(P.title, W / 2, 628, "F5", 60, WINE, "center");
+    text(P.to, W / 2, 582, "F5", 34, RED, "center");
+    heart(W / 2 - 98, 592, 7, RED); heart(W / 2 + 98, 592, 7, RED);
+    stroke(GOLD, 1); c.push(`150 556 m ${W / 2 - 14} 556 l S ${W / 2 + 14} 556 m ${W - 150} 556 l S`);
+    fill(GOLD); star(W / 2, 556, 7, 3, 5); c.push("f");
+
+    /* --- messaggio --- */
+    let y = 512;
+    for (const para of P.paragraphs) {
+      for (const ln of wrap(para, "F3", 20, 380)) { text(ln, W / 2, y, "F3", 20, INK, "center"); y -= 29; }
+      y -= 14;
+    }
+    y -= 10;
+    for (const ln of wrap(P.closing, "F5", 31, 390)) { text(ln, W / 2, y, "F5", 31, RED, "center"); y -= 38; }
+    heart(W / 2, y - 4, 13, RED);
+
+    /* --- paesaggio innevato in fondo --- */
+    fill("#dde6f0"); c.push(`76 70 m 76 86 l 160 ${95} 260 ${80} 340 ${88} c 420 ${96} 490 ${84} ${W - 76} 88 c ${W - 76} 70 l h f`);
+    tree(150, 88, 56, 22); tree(215, 90, 74, 28); tree(298, 92, 92, 33); tree(381, 90, 70, 27); tree(446, 88, 52, 21);
+
+    /* --- assemblaggio PDF --- */
+    const stream = c.join("\n");
+    const fontIds = ["F1", "F3", "F4", "F5"];
+    const objs = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "<< /Type /Pages /Kids [7 0 R] /Count 1 >>",
+      ...fontIds.map((k) => `<< /Type /Font /Subtype /Type1 /BaseFont /${FONTS[k][0]} /Encoding /WinAnsiEncoding >>`),
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents 8 0 R /Resources << /Font << ` +
+        fontIds.map((k, i) => `/${k} ${i + 3} 0 R`).join(" ") + " >> >> >>",
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    ];
     let out = "%PDF-1.4\n"; const offs = [];
     objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
     const xref = out.length;
