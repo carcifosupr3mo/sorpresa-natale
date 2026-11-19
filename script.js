@@ -9,7 +9,8 @@
 const CONFIG = {
   // Data e ora di sblocco, formato ISO con fuso orario.
   //   Inverno (CET): "+01:00"  ->  25 dicembre a mezzanotte = "2026-12-25T00:00:00+01:00"
-  unlockDate: "2026-12-25T00:00:00+01:00",
+  // TEMPORANEO (anteprima su telefono): data nel passato = pagina già sbloccata. RIPRISTINARE a "2026-12-25T00:00:00+01:00" prima di mandare il link!
+  unlockDate: "2026-11-01T00:00:00+01:00",
 
   // Da quando "parte" la barra di progresso (di solito il giorno in cui invii il link).
   startDate: "2026-11-19T00:00:00+01:00",
