@@ -27,7 +27,7 @@ const CONFIG = {
     lockedSubtitle: "Qualcosa di speciale ti aspetta.\nTorna a mezzanotte del 25 dicembre!",
     unlockPrefix: "Si sblocca il",          // + "25 dicembre alle 00:00"
     unlockedTitle: "Buon Natale!",
-    unlockedMessage: "È arrivato il momento.\nIl tuo regalo ti aspetta: scaricalo qui sotto.",
+    unlockedMessage: "È arrivato il momento…\nHo pensato a una cosa solo per te: scaricala qui sotto.",
     buttonText: "Scarica il tuo regalo",
     viewText: "Non parte il download? Aprilo nel browser",
   },
@@ -47,10 +47,11 @@ const CONFIG = {
       "Prima, però, ci aspetta un'altra sorpresa che resterà un segreto fino all'arrivo.",
     ],
     message:
-      "Il mio regalo di Natale per te è un po' di tempo solo per coccolarti: due ore di relax totale, " +
-      "dopo il nostro arrivo sulla Lessinia e dopo una piccola sorpresa che non ti svelo fino all'hotel. " +
-      "Tu pensa solo a portare il sorriso più bello.",
-    signature: "Con tutto il cuore",
+      "Amore, quest'anno volevo regalarti qualcosa che non si può incartare: del tempo, solo per te. " +
+      "Due ore di calma, di calore e di niente a cui pensare. Prima ti aspetta una piccola sorpresa, " +
+      "poi la SPA, e io sarò lì accanto a te, felice di vederti sorridere. " +
+      "Grazie di essere il regalo più bello che ho.",
+    signature: "Con tutto il mio amore",
   },
 };
 
