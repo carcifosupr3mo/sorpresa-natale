@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <!-- Mobile-first: viewport-fit=cover per rispettare notch/home indicator di iPhone -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Una sorpresa per te</title>
+
+  <!-- Anteprima link WhatsApp / social: misteriosa, nessuno spoiler -->
+  <meta name="description" content="Hai una sorpresa in attesa…">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Hai una sorpresa in attesa… 🎁">
+  <meta property="og:description" content="Non ancora. Ma manca pochissimo.">
+  <meta property="og:locale" content="it_IT">
+  <!-- Facoltativo: immagine anteprima (URL ASSOLUTO, ~1200x630). Vedi README.
+  <meta property="og:image" content="https://TUO-DOMINIO/og.jpg"> -->
+  <meta name="theme-color" content="#14102b">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Favicon inline (SVG), niente richieste extra -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='13' width='22' height='14' rx='3' fill='%23f2c27b'/%3E%3Crect x='3' y='9' width='26' height='6' rx='2' fill='%23ff8f7a'/%3E%3Crect x='14' y='9' width='4' height='18' fill='%2314102b'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sfondo ambientale (neve / stelle) e coriandoli: canvas a tutto schermo, non interattivi -->
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <main class="stage">
+
+    <!-- ============ STATO BLOCCATO ============ -->
+    <section id="locked" class="panel card" aria-labelledby="lockedTitle">
+      <svg class="icon" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">
+        <defs>
+          <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffe2a8"/><stop offset="1" stop-color="#e9a45f"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 28v-7a12 12 0 0 1 24 0v7" fill="none" stroke="url(#gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <rect x="13" y="28" width="38" height="28" rx="8" fill="url(#gold)"/>
+        <circle cx="32" cy="40" r="3.6" fill="#14102b"/>
+        <rect x="30.4" y="41" width="3.2" height="8" rx="1.6" fill="#14102b"/>
+      </svg>
+
+      <h1 id="lockedTitle" class="title"></h1>
+      <p id="lockedSubtitle" class="message"></p>
+
+      <!-- role=timer + aria-live=off: aggiorna ogni secondo senza far parlare lo screen reader di continuo -->
+      <div id="countdown" class="countdown" role="timer" aria-live="off">
+        <div class="unit"><span class="num" id="cd-days">--</span><span class="lbl">Giorni</span></div>
+        <div class="unit"><span class="num" id="cd-hours">--</span><span class="lbl">Ore</span></div>
+        <div class="unit"><span class="num" id="cd-minutes">--</span><span class="lbl">Minuti</span></div>
+        <div class="unit"><span class="num" id="cd-seconds">--</span><span class="lbl">Secondi</span></div>
+      </div>
+
+      <div class="progress" aria-hidden="true"><div id="progressBar" class="bar"></div></div>
+      <p id="unlockLabel" class="hint"></p>
+    </section>
+
+    <!-- ============ STATO SBLOCCATO ============ -->
+    <section id="unlocked" class="panel card" aria-labelledby="unlockedTitle" hidden>
+      <svg class="icon" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">
+        <defs>
+          <linearGradient id="gold2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffe2a8"/><stop offset="1" stop-color="#e9a45f"/>
+          </linearGradient>
+        </defs>
+        <rect x="10" y="28" width="44" height="28" rx="5" fill="url(#gold2)"/>
+        <rect x="7" y="20" width="50" height="11" rx="4" fill="#ff8f7a"/>
+        <rect x="28" y="20" width="8" height="36" fill="#14102b" opacity=".85"/>
+        <path d="M32 20c-4-9-14-10-14-4s9 4 14 4zM32 20c4-9 14-10 14-4s-9 4-14 4z" fill="none" stroke="#ffe2a8" stroke-width="3.2" stroke-linejoin="round"/>
+      </svg>
+
+      <h2 id="unlockedTitle" class="title"></h2>
+      <p id="unlockedMessage" class="message"></p>
+
+      <!-- href impostato da JS solo allo sblocco -->
+      <a id="pdfOpen" class="btn" target="_blank" rel="noopener"></a>
+      <a id="pdfDownload" class="link" download></a>
+    </section>
+
+  </main>
+
+  <noscript>
+    <p class="noscript">Per vedere la sorpresa serve JavaScript attivo.</p>
+  </noscript>
+
+  <script src="script.js"></script>
+</body>
+</html>
